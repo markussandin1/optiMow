@@ -1,0 +1,127 @@
+openapi: 3.0.0
+info:
+  title: Authentication API
+  description: Husqvarna Group Authentication API
+  version: 1.0.0
+paths:
+  /oauth2/token:
+    post:
+      summary: OAuth2 login
+      description: |
+        Create an access_token.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - client_id
+                - grant_type
+              properties:
+                grant_type:
+                  description: The grant type to use
+                  type: string
+                  enum:
+                    - authorization_code
+                    - client_credentials
+                    - refresh_token
+                client_id:
+                  description: >-
+                    used for all oauth2 flows
+                  type: string
+                client_secret:
+                  description: >-
+                    used with the client_credentials and authorization_code flow
+                  type: string
+                code:
+                  description: used in the authorization_code flow
+                  type: string
+                scope:
+                  description: used by all flows to specify the needed scopes.
+                  type: string
+                redirect_uri:
+                  description: used in the authorization_code flow
+                  type: string
+                refresh_token:
+                  description: used with the refresh_token grant to get a new access_token
+                  type: string
+      tags:
+        - OAuth2
+      responses:
+        "201":
+          description: Token info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostOAuth2Response"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+  /oauth2/revoke:
+    post:
+      summary: OAuth2 logout
+      security:
+        - AuthorizationHeader: []
+      description: |
+        Revoke an access token and the associated refresh tokens.
+      requestBody:
+        description: access_token to revoke
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+      tags:
+        - OAuth2
+      responses:
+        "200":
+          description: Success
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
+servers:
+  - url: https://api.authentication.husqvarnagroup.dev/v1
+components:
+  securitySchemes:
+    APIKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
+    AuthorizationHeader:
+      description: "Value: `Bearer access_token`"
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    PostOAuth2Response:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: Access token (JWT) with information about the current logged in user.
+        scope:
+          type: string
+          description: Scope
+        expires_in:
+          type: number
+          description: Timestamp expires in seconds
+        refresh_token:
+          type: string
+          description: Refresh token
+        provider:
+          type: string
+          description: Token provider
+        user_id:
+          type: string
+          description: User id
+        token_type:
+          type: string
+          description: Bearer
+
