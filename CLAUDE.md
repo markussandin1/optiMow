@@ -34,7 +34,7 @@ npm run lint         # ESLint (when configured)
 - Auto-resume monitoring functionality
 - Basic dashboard with mower status display
 
-**🚀 NEXT (Phase 2 - EPOS Data Collection)**:
+**🚀 ONGOING (Phase 2 - EPOS Data Collection)**:
 - EPOS-specific data collection system
 - Session detection and area completion tracking
 - Performance measurement (clock time, effective time, efficiency)
