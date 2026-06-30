@@ -74,6 +74,14 @@ serve(async (req) => {
 
     if (op === "register") {
       if (!id || !name) return json({ error: "missing id/name" }, 400);
+      // Verify the mower actually belongs to this user's Husqvarna account
+      // before claiming the id (prevents registering someone else's mower).
+      const token = await validToken();
+      if (!token) return json({ error: "no valid husqvarna token" }, 400);
+      const owned = await listMowers(token, apiKey);
+      if (!owned.some((m) => m.id === id)) {
+        return json({ error: "mower not found in your Husqvarna account" }, 403);
+      }
       const { error } = await supabase.from("mowers").insert({ id, user_id: userId, name, auto_retry: true });
       if (error) return json({ error: error.message }, 400);
       await supabase.from("retry_state").insert({ mower_id: id });

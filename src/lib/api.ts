@@ -22,7 +22,7 @@ export async function exchangeOAuthCode(code: string): Promise<{ session_token: 
       "Content-Type": "application/json",
       "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
     },
-    body: JSON.stringify({ code }),
+    body: JSON.stringify({ code, redirect_uri: import.meta.env.VITE_HUSQVARNA_REDIRECT_URI }),
   });
   if (!res.ok) throw new Error((await res.json()).error ?? "oauth exchange failed");
   return res.json();

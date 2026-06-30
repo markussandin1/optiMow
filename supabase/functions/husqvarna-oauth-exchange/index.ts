@@ -15,15 +15,19 @@ serve(async (req) => {
 
   const clientId = Deno.env.get("HUSQVARNA_CLIENT_ID")!;
   const clientSecret = Deno.env.get("HUSQVARNA_CLIENT_SECRET")!;
-  const redirectUri = Deno.env.get("HUSQVARNA_REDIRECT_URI")!;
+  const envRedirectUri = Deno.env.get("HUSQVARNA_REDIRECT_URI");
   const sessionSecret = Deno.env.get("APP_SESSION_SECRET")!;
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
   try {
-    const { code } = await req.json();
+    const { code, redirect_uri } = await req.json();
     if (!code) return json({ error: "missing code" }, 400);
+    // Use the redirect_uri the frontend actually authorized with (so local dev
+    // and prod both work); fall back to the env value if not provided.
+    const redirectUri = redirect_uri ?? envRedirectUri;
+    if (!redirectUri) return json({ error: "missing redirect_uri" }, 400);
 
     const tokenRes = await fetch(
       "https://api.authentication.husqvarnagroup.dev/v1/oauth2/token",
