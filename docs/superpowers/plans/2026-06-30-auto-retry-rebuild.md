@@ -333,7 +333,11 @@ export function decideRetryAction(
     return { kind: "retry" };
   }
 
-  // No confirmable error. If we were mid-error, the mower recovered.
+  // Non-confirmable, non-fatal but STILL in an error state: wait it out,
+  // preserving the per-episode attempt budget (do not treat as recovery).
+  if (hasActiveError(m)) return { kind: "skip" };
+
+  // Mower is genuinely out of error. If we were mid-episode, it recovered.
   if (state.needs_manual_help || state.attempts_this_error > 0) {
     return { kind: "recovered" };
   }
@@ -805,7 +809,7 @@ serve(async (req) => {
         await supabase.from("retry_log").insert({ mower_id: m.id, error_code: status.errorCode, outcome: "confirm_failed" });
         continue;
       }
-      await resumeSchedule(token, apiKey, m.id);
+      const resumed = await resumeSchedule(token, apiKey, m.id);
       await supabase.from("retry_state").upsert({
         mower_id: m.id,
         attempts_this_error: state.attempts_this_error + 1,
@@ -814,7 +818,7 @@ serve(async (req) => {
         last_attempt_at: new Date().toISOString(),
         resolved_at: null,
       });
-      await supabase.from("retry_log").insert({ mower_id: m.id, error_code: status.errorCode, outcome: "confirmed_and_resumed" });
+      await supabase.from("retry_log").insert({ mower_id: m.id, error_code: status.errorCode, outcome: resumed ? "confirmed_and_resumed" : "resume_failed" });
     } catch (e) {
       console.error(`mower ${m.id} failed`, e);
       results.push({ mower: m.id, decision: "exception" });
