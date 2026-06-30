@@ -751,7 +751,7 @@ serve(async (req) => {
 
   for (const m of mowers ?? []) {
     try {
-      const account = (m as { husqvarna_accounts: { access_token: string; refresh_token: string; expires_at: string } }).husqvarna_accounts;
+      const account = (m as unknown as { husqvarna_accounts: { access_token: string; refresh_token: string; expires_at: string } }).husqvarna_accounts;
       const rsRow = (m as { retry_state: { attempts_this_error: number; needs_manual_help: boolean } | { attempts_this_error: number; needs_manual_help: boolean }[] | null }).retry_state;
       const rs = Array.isArray(rsRow) ? rsRow[0] : rsRow;
       const state = { attempts_this_error: rs?.attempts_this_error ?? 0, needs_manual_help: rs?.needs_manual_help ?? false };
