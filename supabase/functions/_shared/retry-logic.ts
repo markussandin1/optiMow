@@ -16,14 +16,17 @@ export function decideRetryAction(
   }
 
   const confirmable = hasActiveError(m) && m.isErrorConfirmable;
-
   if (confirmable) {
     if (state.needs_manual_help) return { kind: "skip" };
     if (state.attempts_this_error >= maxAttempts) return { kind: "give_up" };
     return { kind: "retry" };
   }
 
-  // No confirmable error. If we were mid-error, the mower recovered.
+  // Non-confirmable, non-fatal but STILL in an error state: wait it out,
+  // preserving the per-episode attempt budget (do not treat as recovery).
+  if (hasActiveError(m)) return { kind: "skip" };
+
+  // Mower is genuinely out of error. If we were mid-episode, it recovered.
   if (state.needs_manual_help || state.attempts_this_error > 0) {
     return { kind: "recovered" };
   }

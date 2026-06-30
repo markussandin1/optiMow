@@ -44,3 +44,14 @@ Deno.test("error present but not confirmable and not fatal -> skip", () => {
   const m: MowerState = { state: "ERROR", errorCode: 5, isErrorConfirmable: false };
   assertEquals(decideRetryAction(m, fresh, MAX), { kind: "skip" });
 });
+
+Deno.test("non-confirmable error mid-episode -> skip (preserve counter)", () => {
+  const m: MowerState = { state: "ERROR", errorCode: 5, isErrorConfirmable: false };
+  const s: RetryState = { attempts_this_error: 2, needs_manual_help: false };
+  assertEquals(decideRetryAction(m, s, MAX), { kind: "skip" });
+});
+
+Deno.test("fatal error already needing manual help -> skip", () => {
+  const s: RetryState = { attempts_this_error: 3, needs_manual_help: true };
+  assertEquals(decideRetryAction(fatal, s, MAX), { kind: "skip" });
+});
