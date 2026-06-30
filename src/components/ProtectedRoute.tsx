@@ -1,18 +1,7 @@
-import { useAuthStore } from '@/stores/authStore';
-import { LoginPage } from '@/pages/LoginPage';
+import { Navigate } from "react-router-dom";
+import { useAuthStore } from "@/stores/authStore";
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
-
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-
-  // If not authenticated, show login page
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  // If authenticated, render the protected content
-  return <>{children}</>;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
