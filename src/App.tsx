@@ -5,7 +5,10 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { CallbackPage } from './pages/CallbackPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { NewDashboardPage } from './pages/NewDashboardPage';
 import { EposDataPage } from './pages/EposDataPage';
+import { ClockTimePage } from './pages/ClockTimePage';
+import AreaCompletionPage from './pages/AreaCompletionPage';
 
 function App() {
   return (
@@ -22,9 +25,24 @@ function App() {
               <DashboardPage />
             </ProtectedRoute>
           } />
+          <Route path="/new-dashboard" element={
+            <ProtectedRoute>
+              <NewDashboardPage />
+            </ProtectedRoute>
+          } />
           <Route path="/epos-data" element={
             <ProtectedRoute>
               <EposDataPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/clock-time" element={
+            <ProtectedRoute>
+              <ClockTimePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/area-completion" element={
+            <ProtectedRoute>
+              <AreaCompletionPage />
             </ProtectedRoute>
           } />
           

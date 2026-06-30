@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './database.types';
 
 // Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -11,8 +10,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Create Supabase client with TypeScript types
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+// Create Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     // Since we're handling authentication through Husqvarna API,
     // we can disable Supabase auth persistence
@@ -20,6 +19,3 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: false,
   },
 });
-
-// Export types for use throughout the application
-export type { Database } from './database.types';

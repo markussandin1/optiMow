@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AuthService } from '@/services/auth';
 import { useAuthStore } from '@/stores/authStore';
-import { useMowerActions } from '@/stores/mowerStore';
 
 export function CallbackPage() {
   const [isProcessing, setIsProcessing] = useState(true);
@@ -13,7 +12,6 @@ export function CallbackPage() {
   
   const authService = useMemo(() => new AuthService(), []);
   const { setLoading } = useAuthStore();
-  const { reset: resetMowerStore } = useMowerActions();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -67,9 +65,6 @@ export function CallbackPage() {
           error: null,
         });
 
-        // Reset mower store to ensure fresh state for new session
-        resetMowerStore();
-
         // Redirect to main app
         navigate('/dashboard', { replace: true });
 
@@ -92,7 +87,7 @@ export function CallbackPage() {
     };
 
     handleCallback();
-  }, [searchParams, navigate, setLoading, authService, resetMowerStore]);
+  }, [searchParams, navigate, setLoading, authService]);
 
   const handleRetry = () => {
     // Reset the processing flag so user can retry

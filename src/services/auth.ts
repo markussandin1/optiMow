@@ -1,6 +1,14 @@
-import { AuthSessionsService } from '@/lib/database.service';
 import { supabase } from '@/lib/supabase';
-import type { AuthSession } from '@/lib/database.types';
+
+export interface AuthSession {
+  session_id: string;
+  user_email: string;
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface LoginCredentials {
   email: string;
@@ -89,12 +97,17 @@ export class AuthService {
       }
 
       // Get the full session from database using the returned session_id
-      const session = await AuthSessionsService.getSession(data.session.session_id);
-      if (!session) {
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('auth_sessions')
+        .select('*')
+        .eq('session_id', data.session.session_id)
+        .single();
+
+      if (sessionError || !sessionData) {
         throw new Error('Failed to retrieve created session');
       }
 
-      return session;
+      return sessionData as AuthSession;
     } catch (error) {
       console.error('OAuth callback failed:', error);
       throw new Error('Failed to complete authentication');
@@ -106,7 +119,17 @@ export class AuthService {
    */
   async getCurrentSession(email: string): Promise<AuthSession | null> {
     try {
-      return await AuthSessionsService.getSessionByEmail(email);
+      const { data, error } = await supabase
+        .from('auth_sessions')
+        .select('*')
+        .eq('user_email', email)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return data as AuthSession;
     } catch (error) {
       console.error('Failed to get current session:', error);
       return null;
@@ -133,12 +156,17 @@ export class AuthService {
       }
 
       // Get the updated session from database
-      const updatedSession = await AuthSessionsService.getSession(sessionId);
-      if (!updatedSession) {
+      const { data: updatedSessionData, error: sessionError } = await supabase
+        .from('auth_sessions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .single();
+
+      if (sessionError || !updatedSessionData) {
         throw new Error('Failed to retrieve updated session');
       }
 
-      return updatedSession;
+      return updatedSessionData as AuthSession;
     } catch (error) {
       console.error('Token refresh failed:', error);
       throw new Error('Failed to refresh authentication tokens');
@@ -150,14 +178,19 @@ export class AuthService {
    */
   async isSessionValid(sessionId: string): Promise<boolean> {
     try {
-      const session = await AuthSessionsService.getSession(sessionId);
-      if (!session) {
+      const { data: session, error } = await supabase
+        .from('auth_sessions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .single();
+
+      if (error || !session) {
         return false;
       }
 
       const expiresAt = new Date(session.expires_at);
       const now = new Date();
-      
+
       // Consider session invalid if it expires in less than 5 minutes
       const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
       return expiresAt.getTime() > now.getTime() + bufferTime;
@@ -172,7 +205,14 @@ export class AuthService {
    */
   async logout(sessionId: string): Promise<void> {
     try {
-      await AuthSessionsService.deleteSession(sessionId);
+      const { error } = await supabase
+        .from('auth_sessions')
+        .delete()
+        .eq('session_id', sessionId);
+
+      if (error) {
+        throw error;
+      }
     } catch (error) {
       console.error('Logout failed:', error);
       throw new Error('Failed to logout');
@@ -185,15 +225,20 @@ export class AuthService {
   async getValidAccessToken(sessionId: string): Promise<string> {
     try {
       const isValid = await this.isSessionValid(sessionId);
-      
+
       if (!isValid) {
         // Try to refresh tokens
         const refreshed = await this.refreshTokens(sessionId);
         return refreshed.access_token;
       }
 
-      const session = await AuthSessionsService.getSession(sessionId);
-      if (!session) {
+      const { data: session, error } = await supabase
+        .from('auth_sessions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .single();
+
+      if (error || !session) {
         throw new Error('Session not found');
       }
 
