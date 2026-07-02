@@ -1,6 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { callAppApi } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
+import { errorCodeText } from "@/lib/husqvarnaErrorCodes";
+
+const OUTCOME_LABELS: Record<string, string> = {
+  confirmed_and_resumed: "Bekräftade felet och återupptog klippning",
+  resume_failed: "Bekräftade felet, men kunde inte återuppta",
+  confirm_failed: "Kunde inte bekräfta felet",
+  gave_up: "Gav upp efter flera försök – behöver manuell hjälp",
+  recovered: "Klipparen återhämtade sig",
+};
+const outcomeLabel = (o: string) => OUTCOME_LABELS[o] ?? o;
 
 interface LogEntry { occurred_at: string; error_code: number; outcome: string }
 interface Mower {
@@ -76,9 +86,12 @@ export function DashboardPage() {
                 {m.log.length > 0 && (
                   <ul className="mt-3 border-t pt-2 text-xs text-gray-500 space-y-1">
                     {m.log.map((l, i) => (
-                      <li key={i} className="flex justify-between">
-                        <span>{new Date(l.occurred_at).toLocaleString("sv-SE")}</span>
-                        <span>{l.outcome}{l.error_code ? ` (kod ${l.error_code})` : ""}</span>
+                      <li key={i} className="flex justify-between gap-3">
+                        <span className="whitespace-nowrap">{new Date(l.occurred_at).toLocaleString("sv-SE")}</span>
+                        <span className="text-right">
+                          {outcomeLabel(l.outcome)}
+                          {l.error_code ? ` · ${errorCodeText(l.error_code)} (kod ${l.error_code})` : ""}
+                        </span>
                       </li>
                     ))}
                   </ul>
