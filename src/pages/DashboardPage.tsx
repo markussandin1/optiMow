@@ -4,11 +4,11 @@ import { useAuthStore } from "@/stores/authStore";
 import { errorCodeText } from "@/lib/husqvarnaErrorCodes";
 
 const OUTCOME_LABELS: Record<string, string> = {
-  confirmed_and_resumed: "Bekräftade felet och återupptog klippning",
-  resume_failed: "Bekräftade felet, men kunde inte återuppta",
-  confirm_failed: "Kunde inte bekräfta felet",
-  gave_up: "Gav upp efter flera försök – behöver manuell hjälp",
-  recovered: "Klipparen återhämtade sig",
+  confirmed_and_resumed: "Confirmed the error and resumed mowing",
+  resume_failed: "Confirmed the error, but couldn't resume",
+  confirm_failed: "Couldn't confirm the error",
+  gave_up: "Gave up after several attempts – needs manual help",
+  recovered: "The mower recovered",
 };
 const outcomeLabel = (o: string) => OUTCOME_LABELS[o] ?? o;
 
@@ -32,7 +32,7 @@ export function DashboardPage() {
       const { mowers } = await callAppApi("list");
       setMowers(mowers);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Kunde inte hämta klippare");
+      setError(e instanceof Error ? e.message : "Couldn't load mowers");
     } finally {
       setLoading(false);
     }
@@ -60,22 +60,22 @@ export function DashboardPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">OptiMow Auto-Retry</h1>
           <button onClick={logout} className="text-sm text-gray-500 hover:text-gray-700 underline">
-            Logga ut
+            Log out
           </button>
         </div>
 
         {error && <div className="rounded-md bg-red-50 p-3 mb-4 text-sm text-red-700">{error}</div>}
 
-        {loading ? <p className="text-sm text-gray-600">Laddar…</p> : (
+        {loading ? <p className="text-sm text-gray-600">Loading…</p> : (
           <div className="space-y-4">
-            {mowers.length === 0 && <p className="text-sm text-gray-600">Inga registrerade klippare ännu.</p>}
+            {mowers.length === 0 && <p className="text-sm text-gray-600">No mowers registered yet.</p>}
             {mowers.map((m) => (
               <div key={m.id} className="bg-white rounded-lg shadow p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-medium text-gray-900">{m.name}</div>
                     {m.needs_manual_help && (
-                      <div className="text-xs text-red-600 mt-1">Behöver manuell hjälp (gav upp efter {m.attempts} försök)</div>
+                      <div className="text-xs text-red-600 mt-1">Needs manual help (gave up after {m.attempts} attempts)</div>
                     )}
                   </div>
                   <label className="flex items-center gap-2 text-sm">
@@ -87,10 +87,10 @@ export function DashboardPage() {
                   <ul className="mt-3 border-t pt-2 text-xs text-gray-500 space-y-1">
                     {m.log.map((l, i) => (
                       <li key={i} className="flex justify-between gap-3">
-                        <span className="whitespace-nowrap">{new Date(l.occurred_at).toLocaleString("sv-SE")}</span>
+                        <span className="whitespace-nowrap">{new Date(l.occurred_at).toLocaleString("en-GB")}</span>
                         <span className="text-right">
                           {outcomeLabel(l.outcome)}
-                          {l.error_code ? ` · ${errorCodeText(l.error_code)} (kod ${l.error_code})` : ""}
+                          {l.error_code ? ` · ${errorCodeText(l.error_code)} (code ${l.error_code})` : ""}
                         </span>
                       </li>
                     ))}
@@ -103,7 +103,7 @@ export function DashboardPage() {
 
         <div className="mt-8">
           <button onClick={discover} className="text-sm py-2 px-4 rounded-md text-white bg-orange-600 hover:bg-orange-700">
-            Hitta nya klippare
+            Find new mowers
           </button>
           {available.length > 0 && (
             <ul className="mt-3 space-y-2">
@@ -111,7 +111,7 @@ export function DashboardPage() {
                 <li key={m.id} className="flex items-center justify-between bg-white rounded-md shadow px-4 py-2">
                   <span className="text-sm text-gray-900">{m.name}</span>
                   <button onClick={() => register(m)} className="text-sm text-orange-600 hover:underline">
-                    Registrera
+                    Register
                   </button>
                 </li>
               ))}

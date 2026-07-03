@@ -183,5 +183,5 @@ export const HUSQVARNA_ERROR_CODES: Record<number, string> = {
 
 export function errorCodeText(code: number | null | undefined): string | null {
   if (code == null || code === 0) return null;
-  return HUSQVARNA_ERROR_CODES[code] ?? `Okänd felkod ${code}`;
+  return HUSQVARNA_ERROR_CODES[code] ?? `Unknown error code ${code}`;
 }

@@ -7,14 +7,14 @@ export function LoginPage() {
       <div className="mx-auto w-full max-w-md bg-white py-8 px-6 shadow rounded-lg text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">OptiMow Auto-Retry</h1>
         <p className="text-sm text-gray-600 mb-8">
-          Logga in med Husqvarna så återupptar vi klippningen automatiskt när din
-          klippare slirar eller fastnar.
+          Log in with Husqvarna and we'll automatically resume mowing whenever
+          your mower slips or gets stuck.
         </p>
         <button
           onClick={initiateOAuth}
           className="w-full py-3 px-4 rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
         >
-          Logga in med Husqvarna
+          Log in with Husqvarna
         </button>
       </div>
     </div>
