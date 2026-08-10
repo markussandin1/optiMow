@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { buildAuthorizeUrl } from "@/services/auth";
-import { exchangeOAuthCode } from "@/lib/api";
+import { exchangeOAuthCode, clearSession } from "@/lib/api";
 
 interface AuthState {
   sessionToken: string | null;
@@ -11,10 +11,26 @@ interface AuthState {
   logout: () => void;
 }
 
+// The session token is a JWT; treat it as absent if its exp has passed
+// so a stale localStorage entry doesn't leave the UI "logged in".
+function isTokenValid(token: string | null): boolean {
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload.exp === "number" && payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+const storedToken = localStorage.getItem("optimow_session");
+const validToken = isTokenValid(storedToken);
+if (storedToken && !validToken) clearSession();
+
 export const useAuthStore = create<AuthState>((set) => ({
-  sessionToken: localStorage.getItem("optimow_session"),
-  userId: localStorage.getItem("optimow_user"),
-  isAuthenticated: !!localStorage.getItem("optimow_session"),
+  sessionToken: validToken ? storedToken : null,
+  userId: validToken ? localStorage.getItem("optimow_user") : null,
+  isAuthenticated: validToken,
 
   initiateOAuth: () => { window.location.href = buildAuthorizeUrl(); },
 

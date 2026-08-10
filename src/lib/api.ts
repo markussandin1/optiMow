@@ -1,5 +1,10 @@
 const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
+export function clearSession() {
+  localStorage.removeItem("optimow_session");
+  localStorage.removeItem("optimow_user");
+}
+
 export async function callAppApi(op: string, args: Record<string, unknown> = {}) {
   const token = localStorage.getItem("optimow_session");
   const res = await fetch(`${FUNCTIONS_URL}/app-api`, {
@@ -11,6 +16,12 @@ export async function callAppApi(op: string, args: Record<string, unknown> = {})
     },
     body: JSON.stringify({ op, ...args }),
   });
+  if (res.status === 401) {
+    // Session token expired or invalid — force a fresh login.
+    clearSession();
+    window.location.assign("/login");
+    throw new Error("session expired");
+  }
   if (!res.ok) throw new Error((await res.json()).error ?? `app-api ${op} failed`);
   return res.json();
 }
